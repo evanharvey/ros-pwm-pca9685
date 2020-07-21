@@ -18,7 +18,9 @@ PCA9685Activity::PCA9685Activity(ros::NodeHandle &_nh, ros::NodeHandle &_nh_priv
     nh_priv.param("address", param_address, (int)PCA9685_ADDRESS);
     nh_priv.param("frequency", param_frequency, (int)1600);
     nh_priv.param("frame_id", param_frame_id, (std::string)"imu");
-    
+    nh_priv.param("timeout_positive", param_timeout_positive, true);
+    nh_priv.param("timeout_negative", param_timeout_negative, true);
+
     // timeouts in milliseconds per channel
     nh_priv.param("timeout", param_timeout, std::vector<int>{
         5000, 5000, 5000, 5000, 5000, 5000, 5000, 5000,
@@ -168,14 +170,17 @@ bool PCA9685Activity::spinOnce() {
       for(int channel = 0; channel < 16; channel++) {
         // positive timeout: timeout when no cammand is received
         if(param_timeout[channel] > 0 && t - last_set_times[channel] > std::abs(param_timeout[channel])) {
-          set(channel, param_timeout_value[channel]);
+          if (param_timeout_positive == true) {
+              set(channel, param_timeout_value[channel]);
+          }
         }
         // negative timeout: timeout when value doesn't change
-	else if(param_timeout[channel] < 0 && t - last_change_times[channel] > std::abs(param_timeout[channel])) {
-          set(channel, param_timeout_value[channel]);
-	  ROS_WARN_STREAM("timeout " << channel);
+	    else if(param_timeout[channel] < 0 && t - last_change_times[channel] > std::abs(param_timeout[channel])) {
+            if (param_timeout_negative == true) {
+                set(channel, param_timeout_value[channel]);
+	            ROS_WARN_STREAM("timeout " << channel);
+            }
         }
-	// zero timeout: no timeout
       }
     }
 

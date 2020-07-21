@@ -73,6 +73,8 @@ class PCA9685Activity {
     std::string param_device;
     int param_address;
     int param_frequency;
+    bool param_timeout_positive;
+    bool param_timeout_negative;
     std::vector<int> param_timeout;
     std::vector<int> param_timeout_value;
     std::vector<int> param_pwm_min;
